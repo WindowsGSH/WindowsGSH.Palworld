@@ -1,0 +1,651 @@
+{
+  "id": "palworld",
+  "name": "Palworld Dedicated Server",
+  "version": "1.0.5",
+  "type": "csharp",
+  "entry": "WindowsGSH.Modules.Palworld.PalworldModule",
+  "author": "Shenniko",
+  "description": "Installs, configures, starts, monitors, and manages Palworld dedicated and community servers.",
+  "url": "https://docs.palworldgame.com/getting-started/deploy-dedicated-server/",
+  "homepage": "https://docs.palworldgame.com/",
+  "repository": "https://github.com/WindowsGSH/WindowsGSH.Palworld",
+  "sourceUrl": "https://github.com/WindowsGSH/WindowsGSH.Palworld",
+  "color": "#1E8449",
+  "moduleApiVersion": "1.0",
+  "minimumWindowsGshVersion": "0.1.0",
+  "steam": {
+    "appId": "2394010",
+    "anonymous": true,
+    "validate": true
+  },
+  "entryPoints": {
+    "start": "PalServer.exe",
+    "processNames": [
+      "PalServer",
+      "PalServer-Win64-Shipping-Cmd"
+    ]
+  },
+  "runtime": {
+    "allowsEmbeddedConsole": true,
+    "consoleStrategy": "Redirected",
+    "portIncrements": 1,
+    "defaultArguments": "{?launch.performancePreset:-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS} -port={network.port} {?network.queryPort:-QueryPort={network.queryPort}} {?launch.workerThreads:-NumberOfWorkerThreadsServer={launch.workerThreads}} {?server.publicLobby:-publiclobby {?network.overridePublicEndpoint:{?network.publicIp:-publicip={quote:network.publicIp}} {?network.publicPort:-publicport={network.publicPort}}}} {?mods.workshopRootDir:-workshopdir={quote:mods.workshopRootDir}} {server.additionalArguments}",
+    "logPath": "Pal/Binaries/Win64/logs",
+    "stop": {
+      "strategy": "closeWindow",
+      "waitMilliseconds": 10000,
+      "killAfterTimeout": true
+    }
+  },
+  "capabilities": {
+    "directConnection": true,
+    "consoleCommands": false
+  },
+  "api": {
+    "connection": {
+      "enabledKey": "rest.enabled",
+      "host": "127.0.0.1",
+      "portKey": "rest.port",
+      "usernameKey": "rest.username",
+      "passwordKey": "server.adminPassword",
+      "scheme": "http"
+    },
+    "actions": [
+      {
+        "key": "info",
+        "label": "Info",
+        "method": "GET",
+        "path": "/v1/api/info",
+        "description": "Returns basic server information."
+      },
+      {
+        "key": "players",
+        "label": "Players",
+        "method": "GET",
+        "path": "/v1/api/players",
+        "description": "Returns the current player list."
+      },
+      {
+        "key": "settings",
+        "label": "Settings",
+        "method": "GET",
+        "path": "/v1/api/settings",
+        "description": "Returns active Palworld server settings."
+      },
+      {
+        "key": "metrics",
+        "label": "Metrics",
+        "method": "GET",
+        "path": "/v1/api/metrics",
+        "description": "Returns server performance and player metrics."
+      },
+      {
+        "key": "announce",
+        "label": "Announce",
+        "method": "POST",
+        "path": "/v1/api/announce",
+        "bodyTemplate": "{\"message\":{param:message}}",
+        "parameters": [
+          {
+            "key": "message",
+            "label": "Message",
+            "type": "Text",
+            "required": true
+          }
+        ]
+      },
+      {
+        "key": "kick",
+        "label": "Kick Player",
+        "method": "POST",
+        "path": "/v1/api/kick",
+        "destructive": true,
+        "confirmMessage": "Kick this player from the server?",
+        "bodyTemplate": "{\"userid\":{param:userid},\"message\":{param:message}}",
+        "parameters": [
+          {
+            "key": "userid",
+            "label": "User ID",
+            "type": "Text",
+            "required": true
+          },
+          {
+            "key": "message",
+            "label": "Message",
+            "type": "Text",
+            "defaultValue": ""
+          }
+        ]
+      },
+      {
+        "key": "ban",
+        "label": "Ban Player",
+        "method": "POST",
+        "path": "/v1/api/ban",
+        "destructive": true,
+        "confirmMessage": "Ban this player from the server?",
+        "bodyTemplate": "{\"userid\":{param:userid},\"message\":{param:message}}",
+        "parameters": [
+          {
+            "key": "userid",
+            "label": "User ID",
+            "type": "Text",
+            "required": true
+          },
+          {
+            "key": "message",
+            "label": "Message",
+            "type": "Text",
+            "defaultValue": ""
+          }
+        ]
+      },
+      {
+        "key": "unban",
+        "label": "Unban Player",
+        "method": "POST",
+        "path": "/v1/api/unban",
+        "bodyTemplate": "{\"userid\":{param:userid}}",
+        "parameters": [
+          {
+            "key": "userid",
+            "label": "User ID",
+            "type": "Text",
+            "required": true
+          }
+        ]
+      },
+      {
+        "key": "save",
+        "label": "Save",
+        "method": "POST",
+        "path": "/v1/api/save",
+        "description": "Saves the world."
+      },
+      {
+        "key": "shutdown",
+        "label": "Shutdown",
+        "method": "POST",
+        "path": "/v1/api/shutdown",
+        "destructive": true,
+        "confirmMessage": "Schedule a server shutdown?",
+        "bodyTemplate": "{\"waittime\":{param:waittime},\"message\":{param:message}}",
+        "parameters": [
+          {
+            "key": "waittime",
+            "label": "Wait Time",
+            "type": "Number",
+            "defaultValue": 30,
+            "required": true,
+            "minimum": 0
+          },
+          {
+            "key": "message",
+            "label": "Message",
+            "type": "Text",
+            "defaultValue": "Server is shutting down."
+          }
+        ]
+      },
+      {
+        "key": "stop",
+        "label": "Stop",
+        "method": "POST",
+        "path": "/v1/api/stop",
+        "destructive": true,
+        "confirmMessage": "Stop the server immediately?",
+        "description": "Stops the server immediately."
+      }
+    ]
+  },
+  "configFields": [
+    {
+      "key": "server.name",
+      "label": "Server Name",
+      "type": "Text",
+      "defaultValue": "Default Palworld Server",
+      "required": true,
+      "group": "Server"
+    },
+    {
+      "key": "server.description",
+      "label": "Server Description",
+      "type": "Text",
+      "defaultValue": "",
+      "group": "Server"
+    },
+    {
+      "key": "server.adminPassword",
+      "label": "Admin Password",
+      "type": "Password",
+      "defaultValue": "",
+      "description": "Required for REST API actions and in-game admin commands.",
+      "group": "Server"
+    },
+    {
+      "key": "server.password",
+      "label": "Server Password",
+      "type": "Password",
+      "defaultValue": "",
+      "group": "Server"
+    },
+    {
+      "key": "server.maxPlayers",
+      "label": "Max Players",
+      "type": "Number",
+      "defaultValue": 32,
+      "required": true,
+      "minimum": 1,
+      "maximum": 32,
+      "group": "Server"
+    },
+    {
+      "key": "server.publicLobby",
+      "label": "Community Server",
+      "type": "Boolean",
+      "defaultValue": false,
+      "description": "Adds -publiclobby so the server appears in the community server list.",
+      "group": "Server",
+      "restartRequired": true
+    },
+    {
+      "key": "network.ip",
+      "label": "Bind IP",
+      "type": "Text",
+      "defaultValue": "0.0.0.0",
+      "group": "Network"
+    },
+    {
+      "key": "network.overridePublicEndpoint",
+      "label": "Advertise Public Endpoint",
+      "type": "Boolean",
+      "defaultValue": false,
+      "description": "Adds -publicip and -publicport for community servers when Palworld's public endpoint auto-detection is wrong.",
+      "group": "Network",
+      "restartRequired": true
+    },
+    {
+      "key": "network.publicIp",
+      "label": "Public IP",
+      "type": "Text",
+      "defaultValue": "",
+      "group": "Network",
+      "visibleWhen": {
+        "key": "network.overridePublicEndpoint",
+        "isTruthy": true
+      },
+      "restartRequired": true
+    },
+    {
+      "key": "network.port",
+      "label": "Server Port",
+      "type": "Port",
+      "defaultValue": 8211,
+      "required": true,
+      "minimum": 1,
+      "maximum": 65535,
+      "group": "Network",
+      "restartRequired": true
+    },
+    {
+      "key": "network.queryPort",
+      "label": "Query Port",
+      "type": "Port",
+      "defaultValue": 27015,
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Experimental. Palworld does not document a query port setting, but this passes -QueryPort and writes QueryPort for testing port conflicts.",
+      "group": "Network",
+      "restartRequired": true
+    },
+    {
+      "key": "network.publicPort",
+      "label": "Public Port",
+      "type": "Port",
+      "defaultValue": 8211,
+      "minimum": 1,
+      "maximum": 65535,
+      "group": "Network",
+      "visibleWhen": {
+        "key": "network.overridePublicEndpoint",
+        "isTruthy": true
+      },
+      "restartRequired": true
+    },
+    {
+      "key": "rest.enabled",
+      "label": "Enable REST API",
+      "type": "Boolean",
+      "defaultValue": false,
+      "description": "Enables Palworld REST API actions. Keep it on LAN or localhost only.",
+      "group": "REST API",
+      "restartRequired": true
+    },
+    {
+      "key": "rest.port",
+      "label": "REST API Port",
+      "type": "Port",
+      "defaultValue": 8212,
+      "minimum": 1,
+      "maximum": 65535,
+      "group": "REST API",
+      "visibleWhen": {
+        "key": "rest.enabled",
+        "isTruthy": true
+      },
+      "restartRequired": true
+    },
+    {
+      "key": "rest.username",
+      "label": "REST API Username",
+      "type": "Text",
+      "defaultValue": "admin",
+      "group": "REST API",
+      "visibleWhen": {
+        "key": "rest.enabled",
+        "isTruthy": true
+      }
+    },
+    {
+      "key": "launch.performancePreset",
+      "label": "Performance Arguments",
+      "type": "Boolean",
+      "defaultValue": true,
+      "description": "Adds the Palworld dedicated-server performance arguments.",
+      "group": "Launch",
+      "restartRequired": true
+    },
+    {
+      "key": "launch.workerThreads",
+      "label": "Worker Threads",
+      "type": "Number",
+      "defaultValue": 0,
+      "minimum": 0,
+      "maximum": 128,
+      "description": "0 lets Palworld choose. Official guidance is CPU thread count minus one.",
+      "group": "Launch",
+      "restartRequired": true
+    },
+    {
+      "key": "server.logFormat",
+      "label": "Log Format",
+      "type": "Select",
+      "defaultValue": "text",
+      "options": [
+        "text",
+        "json"
+      ],
+      "group": "Launch",
+      "restartRequired": true
+    },
+    {
+      "key": "server.additionalArguments",
+      "label": "Additional Arguments",
+      "type": "CommandLine",
+      "defaultValue": "",
+      "description": "Extra Palworld launch arguments. WindowsGSH removes duplicates for module-managed flags.",
+      "group": "Launch",
+      "restartRequired": true
+    },
+    {
+      "key": "game.difficulty",
+      "label": "Difficulty",
+      "type": "Select",
+      "defaultValue": "None",
+      "options": [
+        "None",
+        "Hard"
+      ],
+      "group": "World",
+      "restartRequired": true
+    },
+    {
+      "key": "game.deathPenalty",
+      "label": "Death Penalty",
+      "type": "Select",
+      "defaultValue": "All",
+      "options": [
+        "None",
+        "Item",
+        "ItemAndEquipment",
+        "All"
+      ],
+      "group": "World",
+      "restartRequired": true
+    },
+    {
+      "key": "game.autoSaveSpan",
+      "label": "Auto Save Interval",
+      "type": "Number",
+      "defaultValue": 30,
+      "minimum": 1,
+      "maximum": 3600,
+      "group": "World",
+      "restartRequired": true
+    },
+    {
+      "key": "game.dayTimeSpeedRate",
+      "label": "Day Time Speed",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 5.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.nightTimeSpeedRate",
+      "label": "Night Time Speed",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 5.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.expRate",
+      "label": "EXP Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.palCaptureRate",
+      "label": "Pal Capture Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.palSpawnNumRate",
+      "label": "Pal Spawn Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.collectionDropRate",
+      "label": "Collection Drop Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.enemyDropItemRate",
+      "label": "Enemy Drop Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.workSpeedRate",
+      "label": "Work Speed Rate",
+      "type": "Number",
+      "defaultValue": 1.0,
+      "minimum": 0.1,
+      "maximum": 20.0,
+      "group": "Rates",
+      "restartRequired": true
+    },
+    {
+      "key": "game.palEggDefaultHatchingTime",
+      "label": "Egg Hatching Time",
+      "type": "Number",
+      "defaultValue": 72.0,
+      "minimum": 0.0,
+      "maximum": 240.0,
+      "group": "World",
+      "restartRequired": true
+    },
+    {
+      "key": "game.allowClientMod",
+      "label": "Allow Client Mods",
+      "type": "Boolean",
+      "defaultValue": false,
+      "group": "Mods",
+      "restartRequired": true
+    },
+    {
+      "key": "mods.enabled",
+      "label": "Enable Mods",
+      "type": "Boolean",
+      "defaultValue": true,
+      "description": "Controls Palworld's mod system. Disable to add -NoMods.",
+      "group": "Mods",
+      "restartRequired": true
+    },
+    {
+      "key": "mods.workshopRootDir",
+      "label": "Workshop Directory",
+      "type": "Text",
+      "defaultValue": "",
+      "description": "Optional directory passed to -workshopdir.",
+      "group": "Mods",
+      "visibleWhen": {
+        "key": "mods.enabled",
+        "isTruthy": true
+      },
+      "restartRequired": true
+    },
+    {
+      "key": "mods.activeModList",
+      "label": "Active Mod List",
+      "type": "Text",
+      "defaultValue": "",
+      "description": "Optional Mods/PalModSettings.ini ActiveMods value.",
+      "group": "Mods",
+      "visibleWhen": {
+        "key": "mods.enabled",
+        "isTruthy": true
+      },
+      "restartRequired": true
+    },
+    {
+      "key": "game.pvp",
+      "label": "PvP",
+      "type": "Boolean",
+      "defaultValue": false,
+      "group": "PvP",
+      "restartRequired": true
+    },
+    {
+      "key": "game.playerToPlayerDamage",
+      "label": "Player Damage",
+      "type": "Boolean",
+      "defaultValue": false,
+      "group": "PvP",
+      "restartRequired": true
+    },
+    {
+      "key": "game.guildDefense",
+      "label": "Guild Defense",
+      "type": "Boolean",
+      "defaultValue": false,
+      "group": "PvP",
+      "restartRequired": true
+    },
+    {
+      "key": "game.friendlyFire",
+      "label": "Friendly Fire",
+      "type": "Boolean",
+      "defaultValue": false,
+      "group": "PvP",
+      "restartRequired": true
+    }
+  ],
+  "ports":   [
+      {
+          "id":  "game",
+          "name":  "Game Port",
+          "protocol":  "udp",
+          "configField":  "network.port",
+          "required":  true
+      },
+      {
+          "id":  "query",
+          "name":  "Query Port",
+          "protocol":  "udp",
+          "configField":  "network.queryPort"
+      },
+      {
+          "id": "rest",
+          "name": "REST API Port",
+          "protocol": "tcp",
+          "configField": "rest.port",
+          "required": false,
+          "openExternally": false,
+          "checkLocalListener": false
+      }
+  ],
+  "backupTargets": [
+    {
+      "key": "saved",
+      "label": "Saved Data",
+      "path": "Pal/Saved",
+      "type": "directory",
+      "required": true
+    },
+    {
+      "key": "config",
+      "label": "Config",
+      "path": "Pal/Saved/Config",
+      "type": "directory"
+    },
+    {
+      "key": "mods",
+      "label": "Mods",
+      "path": "Mods",
+      "type": "directory"
+    },
+    {
+      "key": "pakMods",
+      "label": "Pak Mods",
+      "path": "Pal/Content/Paks",
+      "type": "directory"
+    }
+  ],
+  "addons": [
+    {
+      "id": "manual-mods",
+      "name": "Manual Palworld Mods",
+      "description": "Tracks Palworld's supported mod folders for manual mod installs.",
+      "installInstructions": "Install mods using Palworld's documented Mods/Workshop, Mods/NativeMods, Pal/Content/Paks/LogicMods, or Pal/Content/Paks/~WorkshopMods folders."
+    }
+  ]
+}
